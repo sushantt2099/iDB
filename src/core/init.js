@@ -44,8 +44,8 @@
         var registerObjectStore = function(e){
             console.log("running onupgradeneeded");
             var thisDB = e.target.result;
-
-            _.each(iDB.private.OBJECT_STORES, function(objectStoreDetails){
+            var objectStoresInfo = iDB.private.getObjectStoresInfo();
+            _.each(objectStoresInfo, function(objectStoreDetails){
             	var objectStoreName = objectStoreDetails.name;
             	var createIndex = function(objectStore, indexes) {
                     var existingIndexes = objectStore.indexNames;

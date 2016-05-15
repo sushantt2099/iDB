@@ -1,6 +1,6 @@
 QUnit.test("Indexeddb objectStore Registration", function(assert) {
-    var objectStoreToRegister = 
-    	{
+    var objectStoresToRegister = 
+    	[{
     		name: 'test',
     		customValidator: function(){},
     		dataFormat: [],
@@ -13,10 +13,10 @@ QUnit.test("Indexeddb objectStore Registration", function(assert) {
     			autoIncrement: true
     		}
 
-    	};
+    	}];
 
-    iDB.registerObjectStore(objectStoreToRegister);
-    var index = iDB.private.OBJECT_STORES.indexOf(objectStoreToRegister);
+    iDB.registerObjectStore(objectStoresToRegister);
+    var index = iDB.private.getObjectStoresInfo().indexOf(objectStoresToRegister[0]);
     assert.ok( index > -1, "Object Store Details Registered" );
 
 });

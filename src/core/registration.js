@@ -1,13 +1,20 @@
 (function(){
 	window.iDB = window.iDB || {};
+	var OBJECT_STORES = [];
     iDB = window.iDB;
     
-	iDB.registerObjectStore = function(details){
+    iDB.private.getObjectStoresInfo = function(){
+    	return OBJECT_STORES;
+    };
+
+	iDB.registerObjectStore = function(objectStoresInfo){
+		_.each(objectStoresInfo, function(objectStoreInfo){
+			objectStoreInfo.keyPath.name = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.name) || 'id';
+			objectStoreInfo.keyPath.autoIncrement = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.autoIncrement) || true;
+			OBJECT_STORES = OBJECT_STORES || [];
+			OBJECT_STORES.push(objectStoreInfo);	
+		});
 		
-		details.keyPath.name = (details.keyPath && details.keyPath.name) || 'id';
-		details.keyPath.autoIncrement = (details.keyPath && details.keyPath.autoIncrement) || true;
-		iDB.private.OBJECT_STORES = iDB.OBJECT_STORES || [];
-		iDB.private.OBJECT_STORES.push(details);
 	};
 
 })();

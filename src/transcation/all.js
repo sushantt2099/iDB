@@ -15,9 +15,9 @@
         iDB.private.readAllData({
         	objectStoreName: objectStoreName,
         	callback: function(allData){
+        		
         		//store the data to the cache
-        		iDB.private.cache.setAllDataRetrived(objectStoreName);
-        		iDB.private.cache.setData({
+        		iDB.private.cache.setAllData({
         			objectStoreName: objectStoreName,
         			all: allData
         		});

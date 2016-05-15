@@ -2,6 +2,7 @@
 	window.iDB = window.iDB || {};
     iDB = window.iDB;
     var db;
+    iDB.private = iDB.private || {};
 
     iDB.private.getDBInstance = function(details){
         if(db){

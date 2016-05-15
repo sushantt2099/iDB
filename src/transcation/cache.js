@@ -20,7 +20,8 @@
         iDB.private.cache.getCache(objectStoreName).aDataRetrived = true;
     };
 
-    iDB.private.cache.setData = function(details){
+    iDB.private.cache.setAllData = function(details){
+        iDB.private.cache.setAllDataRetrived(details.objectStoreName);
         iDB.private.cache.getCache(details.objectStoreName).all = details.all;
     };
 

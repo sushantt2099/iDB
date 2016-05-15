@@ -2,6 +2,7 @@
 	window.iDB = window.iDB || {};
     iDB = window.iDB;
     var db;
+    iDB.private = iDB.private || {};
 
     iDB.private.getDBInstance = function(details){
         if(db){
@@ -116,8 +117,8 @@
         var registerObjectStore = function(e){
             console.log("running onupgradeneeded");
             var thisDB = e.target.result;
-
-            _.each(iDB.private.OBJECT_STORES, function(objectStoreDetails){
+            var objectStoresInfo = iDB.private.getObjectStoresInfo();
+            _.each(objectStoresInfo, function(objectStoreDetails){
             	var objectStoreName = objectStoreDetails.name;
             	var createIndex = function(objectStore, indexes) {
                     var existingIndexes = objectStore.indexNames;
@@ -151,17 +152,57 @@
 })();
 ;(function(){
 	window.iDB = window.iDB || {};
+	var OBJECT_STORES = [];
     iDB = window.iDB;
     
-	iDB.registerObjectStore = function(details){
+    iDB.private.getObjectStoresInfo = function(){
+    	return OBJECT_STORES;
+    };
+
+	iDB.registerObjectStore = function(objectStoresInfo){
+		_.each(objectStoresInfo, function(objectStoreInfo){
+			objectStoreInfo.keyPath.name = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.name) || 'id';
+			objectStoreInfo.keyPath.autoIncrement = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.autoIncrement) || true;
+			OBJECT_STORES = OBJECT_STORES || [];
+			OBJECT_STORES.push(objectStoreInfo);	
+		});
 		
-		details.keyPath.name = (details.keyPath && details.keyPath.name) || 'id';
-		details.keyPath.autoIncrement = (details.keyPath && details.keyPath.autoIncrement) || true;
-		iDB.private.OBJECT_STORES = iDB.OBJECT_STORES || [];
-		iDB.private.OBJECT_STORES.push(details);
 	};
 
-})();;(function(){
+})();;(function() {
+    window.iDB = window.iDB || {};
+    iDB = window.iDB;
+    iDB.all = function(queryDetails) {
+        var objectStoreName = queryDetails.objectStore;
+        var start = queryDetails.start;
+        var end = queryDetails.end;
+
+        // check the cache and return all
+        if (iDB.private.cache.isAllDataRetrived(objectStoreName)) {
+            objectStoreName.callback(cache.all);
+            return;
+        }
+
+        iDB.private.readAllData({
+        	objectStoreName: objectStoreName,
+        	callback: function(allData){
+        		
+        		//store the data to the cache
+        		iDB.private.cache.setAllData({
+        			objectStoreName: objectStoreName,
+        			all: allData
+        		});
+        		
+        	}
+        });
+
+
+
+
+    };
+
+})();
+;(function(){
 	window.iDB = window.iDB || {};
     iDB = window.iDB;
     iDB.private = iDB.private || {};
@@ -183,7 +224,8 @@
         iDB.private.cache.getCache(objectStoreName).aDataRetrived = true;
     };
 
-    iDB.private.cache.setData = function(details){
+    iDB.private.cache.setAllData = function(details){
+        iDB.private.cache.setAllDataRetrived(details.objectStoreName);
         iDB.private.cache.getCache(details.objectStoreName).all = details.all;
     };
 
@@ -243,33 +285,190 @@
 })();;(function() {
     window.iDB = window.iDB || {};
     iDB = window.iDB;
-    iDB.all = function(queryDetails) {
+    iDB.delete = function(queryDetails) {
+        
+        var callback = queryDetails.callback;
+        var id = queryDetails.id;
+
+        queryDetails.onSuccess = function(db){
+            
+            var request = db.delete(id);
+            request.onerror = function(e){
+                    if(callback){
+                        callback(false);
+                    }
+                };
+
+            request.onsuccess = function(e){
+                console.log("item deleted");
+                if(callback){
+                    callback(true);
+                }
+            };
+        
+        };
+        iDB.private.getObjectStore(queryDetails);
+    };
+
+})();
+;(function() {
+    window.iDB = window.iDB || {};
+    iDB = window.iDB;
+    iDB.find = function(queryDetails) {
+        var id = queryDetails.id;
         var objectStoreName = queryDetails.objectStore;
-        var start = queryDetails.start;
-        var end = queryDetails.end;
+        var callback = queryDetails.callback;
 
-        // check the cache and return all
-        if (iDB.private.cache.isAllDataRetrived(objectStoreName)) {
-            objectStoreName.callback(cache.all);
-            return;
-        }
-
-        iDB.private.readAllData({
-        	objectStoreName: objectStoreName,
-        	callback: function(allData){
-        		//store the data to the cache
-        		iDB.private.cache.setAllDataRetrived(objectStoreName);
-        		iDB.private.cache.setData({
-        			objectStoreName: objectStoreName,
-        			all: allData
-        		});
-        		
-        	}
+        iDB.private.getObjectStore({
+            callback: function(objectStore) {
+                var request;
+                try {
+                    request = objectStore.get(id);
+                } catch (e) {
+                    console.error("error");
+                    callback(false);
+                }
+                request.onsuccess = function(e) {
+                    callback(e.target.result);
+                };
+                request.onerror = function(e) {
+                    console.log(e);
+                    callback(false);
+                };
+            },
+            mode: 'readonly',
+            objectStoreName: objectStoreName
         });
 
 
+    };
+
+})();
+;(function() {
+    window.iDB = window.iDB || {};
+    iDB = window.iDB;
+    iDB.findByIndex = function(queryDetails) {
+        var id = queryDetails.id;
+        var objectStoreName = queryDetails.objectStore;
+        var callback = queryDetails.callback;
+        var indexName = queryDetails.indexName;
+        var indexValue = queryDetails.indexValue;
+
+        iDB.private.getObjectStore({
+            callback: function(objectStore) {
+                var index = objectStore.index(indexName);
+
+                //name is some value
+                var request = index.openCursor(value);
+                var all = [];
+
+                request.onsuccess = function(event) {
+                    var cursor = event.target.result;
+                    if (cursor) {
+                        all.push(cursor.value);
+                        cursor.continue();
+                    } else {
+                        if(callback){
+                            callback(all);
+                        }
+                    }
+                };
+                request.onerror = function(e) {
+                    console.log(e);
+                    callback(false);
+                };
+            },
+            mode: 'readonly',
+            objectStoreName: objectStoreName
+        });
 
 
+    };
+
+})();
+;(function() {
+    window.iDB = window.iDB || {};
+    iDB = window.iDB;
+    var WHERE_CONDITION_OPERATIONS = {
+        '>': function(modelData, property, value) {
+            return (value > modelData[property]);
+        },
+        '==': function(modelData, property, value) {
+            return (value == modelData[property]);
+        },
+        '<': function(modelData, property, value) {
+            return (value < modelData[property]);
+        },
+        '<=': function(modelData, property, value) {
+            return (value <= modelData[property]);
+        },
+        '>=': function(modelData, property, value) {
+            return (value >= modelData[property]);
+        },
+        '!=': function(modelData, property, value) {
+            return (value != modelData[property]);
+        }
+    };
+
+    var validateCondition = function(data, condition) {
+        var conditionExecuter = WHERE_CONDITION_OPERATIONS[condition.operator];
+        return conditionExecuter(data, condition.property, condition.value);
+    };
+
+    iDB.where = function(queryDetails) {
+
+        var conditions = queryDetails.conditions;
+        var callback = queryDetails.callback;
+
+        //validate condition
+        _.each(conditions, function(condition) {
+            if (!condition.hasOwnProperty("property")) throw "Property not found for query " + JSON.stringify(condition);
+            if (!condition.hasOwnProperty("value")) throw "Value not found for query " + JSON.stringify(condition);
+        });
+
+        console.log("BaseModel:where valid condition");
+        queryDetails.callback = function(all) {
+            var searchList = [];
+            _.each(all, function(dataInQuestion){
+                var match = true;
+                _.each(conditions, function(condition){
+                    var propertyName = condition.property;
+
+                    var conditionIndex = conditions.indexOf(condition);
+                    //for multiple conditions i.e or conditions
+                    if (conditionIndex === 0) {
+                        match = validateCondition(dataInQuestion, condition);
+                    } else {
+                        match = match || validateCondition(dataInQuestion, condition);
+                    }
+
+                    if (match) {
+                        while (condition.and) {
+                            if(conditionIndex === 0){
+                                match = validateCondition(dataInQuestion, condition.and);
+                            }else{
+                                //no need to check the condition since anyother condition is already true
+                            }
+                            
+                            if (!match) {
+                                break;
+                            }
+                            condition = condition.and;
+                        }
+                    }
+                });
+                
+                if (match) {
+                    searchList.push(dataInQuestion);
+                }
+            });
+           
+
+            console.log("BaseModel:where callback");
+            callback(searchList);
+        };
+
+        iDB.all(queryDetails);
     };
 
 })();
