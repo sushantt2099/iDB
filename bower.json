@@ -1,0 +1,24 @@
+{
+  "name": "iDB",
+  "description": "js library to manage HTML5 indexedDB",
+  "main": "",
+  "authors": [
+    "Sushant <forksushant@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "indexeddb"
+  ],
+  "homepage": "https://github.com/sushantt2099/iDB",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "underscore": "^1.8.3"
+  }
+}
