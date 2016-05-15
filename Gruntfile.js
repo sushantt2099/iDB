@@ -34,7 +34,8 @@ module.exports = function(grunt) {
           module: true,
           document: true,
           iDB: true,
-          _: true
+          _: true,
+          idbTester: true
         }
       }
     },

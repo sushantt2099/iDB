@@ -12,7 +12,9 @@
 			objectStoreInfo.keyPath.name = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.name) || 'id';
 			objectStoreInfo.keyPath.autoIncrement = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.autoIncrement) || true;
 			OBJECT_STORES = OBJECT_STORES || [];
-			OBJECT_STORES.push(objectStoreInfo);	
+			if(OBJECT_STORES.indexOf(objectStoreInfo) < 0){
+				OBJECT_STORES.push(objectStoreInfo);		
+			}
 		});
 		
 	};

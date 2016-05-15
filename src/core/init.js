@@ -13,7 +13,7 @@
             databaseName = details.databaseName;
         }
         if(details.version){
-            version = details.databaseName;
+            version = details.version;
         }
         var onUpgradeNeeded = details.onUpgradeNeeded;
         var onSuccess = details.onSuccess;

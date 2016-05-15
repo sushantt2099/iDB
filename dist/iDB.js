@@ -86,7 +86,7 @@
             databaseName = details.databaseName;
         }
         if(details.version){
-            version = details.databaseName;
+            version = details.version;
         }
         var onUpgradeNeeded = details.onUpgradeNeeded;
         var onSuccess = details.onSuccess;
@@ -164,7 +164,9 @@
 			objectStoreInfo.keyPath.name = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.name) || 'id';
 			objectStoreInfo.keyPath.autoIncrement = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.autoIncrement) || true;
 			OBJECT_STORES = OBJECT_STORES || [];
-			OBJECT_STORES.push(objectStoreInfo);	
+			if(OBJECT_STORES.indexOf(objectStoreInfo) < 0){
+				OBJECT_STORES.push(objectStoreInfo);		
+			}
 		});
 		
 	};
@@ -286,26 +288,26 @@
     window.iDB = window.iDB || {};
     iDB = window.iDB;
     iDB.delete = function(queryDetails) {
-        
+
         var callback = queryDetails.callback;
         var id = queryDetails.id;
 
-        queryDetails.onSuccess = function(db){
-            
-            var request = db.delete(id);
-            request.onerror = function(e){
-                    if(callback){
-                        callback(false);
-                    }
-                };
+        queryDetails.onSuccess = function(db) {
 
-            request.onsuccess = function(e){
+            var request = db.delete(id);
+            request.onerror = function(e) {
+                if (callback) {
+                    callback(false);
+                }
+            };
+
+            request.onsuccess = function(e) {
                 console.log("item deleted");
-                if(callback){
+                if (callback) {
                     callback(true);
                 }
             };
-        
+
         };
         iDB.private.getObjectStore(queryDetails);
     };
