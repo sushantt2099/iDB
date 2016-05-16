@@ -18,5 +18,14 @@
 		});
 		
 	};
+	iDB.getObjectStoreDetails = function(objectStoreName){
+		var objectStoreDetails;
+		_.each(OBJECT_STORES, function(objectStore){
+			if(objectStore.name === objectStoreName){
+				objectStoreDetails =  objectStore;
+			}
+		});
+		return objectStoreDetails;
+	};
 
 })();

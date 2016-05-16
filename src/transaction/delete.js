@@ -4,26 +4,34 @@
     iDB.delete = function(queryDetails) {
 
         var callback = queryDetails.callback;
-        var id = queryDetails.id;
+        var totalDeleteObjects = 0;
+        queryDetails.callback = function(db) {
+            _.each(queryDetails.objectsToDelete, function(objectToDelete) {
+                var id = objectToDelete.id;
+                var request = db.delete(id);
 
-        queryDetails.onSuccess = function(db) {
+                request.onerror = function(e) {
+                    throw "could not delete  " + objectToDelete + e;
+                };
 
-            var request = db.delete(id);
-            request.onerror = function(e) {
-                if (callback) {
-                    callback(false);
-                }
-            };
+                request.onsuccess = function(e) {
+                    ++totalDeleteObjects;
+                    if (totalDeleteObjects === queryDetails.objectsToDelete.length) {
+                        iDB.private.cache.deleteData(queryDetails);
+                        if (callback) {
+                            callback(true);
+                        }
+                    }
 
-            request.onsuccess = function(e) {
-                console.log("item deleted");
-                if (callback) {
-                    callback(true);
-                }
-            };
+                };
+            });
 
         };
         iDB.private.getObjectStore(queryDetails);
+
+
+
+
     };
 
 })();

@@ -2,13 +2,13 @@
     window.iDB = window.iDB || {};
     iDB = window.iDB;
     iDB.all = function(queryDetails) {
-        var objectStoreName = queryDetails.objectStore;
+        var objectStoreName = queryDetails.objectStoreName;
         var start = queryDetails.start;
         var end = queryDetails.end;
 
         // check the cache and return all
         if (iDB.private.cache.isAllDataRetrived(objectStoreName)) {
-            objectStoreName.callback(cache.all);
+            queryDetails.callback(iDB.private.cache.getAllData(objectStoreName));
             return;
         }
 
@@ -21,6 +21,7 @@
         			objectStoreName: objectStoreName,
         			all: allData
         		});
+                queryDetails.callback(allData);
         		
         	}
         });
