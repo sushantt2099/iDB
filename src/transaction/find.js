@@ -3,7 +3,7 @@
     iDB = window.iDB;
     iDB.find = function(queryDetails) {
         var id = queryDetails.id;
-        var objectStoreName = queryDetails.objectStore;
+        var objectStoreName = queryDetails.objectStoreName;
         var callback = queryDetails.callback;
 
         iDB.private.getObjectStore({

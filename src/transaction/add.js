@@ -17,6 +17,10 @@
                 };
 
                 request.onsuccess = function(e) {
+                    
+                    //cache data
+                    iDB.private.cache.addData(queryDetails.objectStoreName, objectToAdd);
+
                     ++totalObjectStoreAdded;
                     console.log("saved to db");
                     objectToAdd.id = e.target.result;

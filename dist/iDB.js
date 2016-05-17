@@ -181,12 +181,14 @@
             var objectStoresInfo = iDB.private.getObjectStoresInfo();
             _.each(objectStoresInfo, function(objectStoreDetails){
             	var objectStoreName = objectStoreDetails.name;
+
+                //create index
             	var createIndex = function(objectStore, indexes) {
                     var existingIndexes = objectStore.indexNames;
                     _.each(indexes, function(index){
                     	var indexExists = false;
-                    	_.each(existingIndexes, function(existingIndexe){
-                    		 if (existingIndexe === index.name) {
+                    	_.each(existingIndexes, function(existingIndex){
+                    		 if (existingIndex === index.name) {
                                 indexExists = true;
                             }
                     	});
@@ -194,8 +196,9 @@
                             objectStore.createIndex(index.name, index.name, { unique: index.unique });
                         }
                     });
-                    
                 };
+                //end of creating index
+                
                 var objectStore;
                 if (!thisDB.objectStoreNames.contains(objectStoreName)) {
                     objectStore =
@@ -220,6 +223,21 @@
     	return OBJECT_STORES;
     };
 
+    /*
+		format: {
+			name: ,
+			indexes: [
+				{
+					name: ,
+					unique: true/false
+				}
+			]
+			keyPath: {
+				name: ,
+				autoIncrement: true/false
+			}
+		}
+    */
 	iDB.registerObjectStore = function(objectStoresInfo){
 		_.each(objectStoresInfo, function(objectStoreInfo){
 			objectStoreInfo.keyPath.name = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.name) || 'id';
@@ -241,6 +259,20 @@
 		return objectStoreDetails;
 	};
 
+	iDB.getKeyPathName = function(objectStoreNmae, objectStoreDetails){
+		if(objectStoreDetails){
+			return objectStoreDetails.keyPath.name;
+		}
+		return iDB.getObjectStoreDetails(objectStoreNmae).keyPath.name;
+	};
+
+	iDB.getObjectStoreIndexes = function(objectStoreName, objectStoreDetails){
+		if(objectStoreDetails){
+			return objectStoreDetails.indexes;
+		}
+		return iDB.getObjectStoreDetails(objectStoreName).indexes;	
+	};
+
 })();;(function() {
     window.iDB = window.iDB || {};
     iDB = window.iDB;
@@ -260,6 +292,10 @@
                 };
 
                 request.onsuccess = function(e) {
+                    
+                    //cache data
+                    iDB.private.cache.addData(queryDetails.objectStoreName, objectToAdd);
+
                     ++totalObjectStoreAdded;
                     console.log("saved to db");
                     objectToAdd.id = e.target.result;
@@ -272,8 +308,7 @@
         iDB.private.getObjectStore(queryDetails);
     };
 
-})();
-;(function() {
+})();;(function() {
     window.iDB = window.iDB || {};
     iDB = window.iDB;
     iDB.all = function(queryDetails) {
@@ -300,10 +335,6 @@
         		
         	}
         });
-
-
-
-
     };
 
 })();
@@ -329,9 +360,70 @@
         iDB.private.cache.getCache(objectStoreName).aDataRetrived = true;
     };
 
+
     iDB.private.cache.setAllData = function(details) {
         iDB.private.cache.setAllDataRetrived(details.objectStoreName);
-        iDB.private.cache.getCache(details.objectStoreName).all = details.all;
+
+        var cache = iDB.private.cache.getCache(details.objectStoreName);
+        //store all data in the cache
+        cache.all = details.all;
+
+        //index the data in the cache
+        var indexes = iDB.getObjectStoreIndexes(details.objectStoreName);
+        _.each(details.all, function(object) {
+            iDB.private.cache.indexData(cache, object, indexes);
+        });
+        //end of the indexing of data
+    };
+
+    /*  
+        data is indexed in the cache as cache.index.indexName.indexValue
+    */
+
+    iDB.private.cache.indexData = function(cache, object, indexes) {
+        _.each(indexes, function(index) {
+            cache.index = cache.index || [];
+            var indexName = index.name;
+            var indexValue = object[indexName];
+
+
+            //initialize
+            cache.index[indexName] = cache.index[indexName] || [];
+            cache.index[indexName][indexValue] = cache.index[indexName][indexValue] || [];
+            // end initialization 
+
+            //store data to index
+            if (index.unique) {
+                cache.index[indexName][indexValue] = object;
+
+            } else {
+                cache.index[indexName][indexValue].push(object);
+            }
+            // end store data to index
+        });
+    };
+
+    iDB.private.cache.removeDataFromIndex = function(cache, object, indexes) {
+
+        _.each(indexes, function(index) {
+            cache.index = cache.index || [];
+            var indexName = index.name;
+            var indexValue = object[indexName];
+
+            if (index.unique) {
+                delete cache.index[indexName][indexValue];
+
+            } else {
+                var objectIndex = cache.index[indexName][indexValue].indexOf(object);
+                cache.index[indexName][indexValue].splice(objectIndex, 1);
+            }
+            // end store data to index
+        });
+
+    };
+
+    iDB.private.cache.getIndexedData = function(objectStoreName, indexName, indexValue) {
+        return iDB.private.cache.getCache(objectStoreName).index[indexName][indexValue];
     };
 
     iDB.private.cache.getAllData = function(objectStoreName) {
@@ -339,61 +431,60 @@
     };
 
 
-    iDB.private.cache.addData = function(dataDetails) {
-        var objectStoreDetails = dataDetails.objectStoreDetails;
-        var key = objectStoreDetails.keyPath.name;
+    iDB.private.cache.addData = function(objectStoreName, objectToAdd) {
+
+        var all = iDB.private.cache.getAllData(objectStoreName);
+        if (all) {
+            all.push(objectToAdd);
+            //index data
+            var cache = iDB.private.cache.getCache(objectStoreName);
+            iDB.private.cache.indexData(cache, objectToAdd, iDB.getObjectStoreIndexes(objectStoreName));
+        }
 
 
 
-        var all = iDB.private.cache.getAllData(objectStoreDetails.name);
+
+    };
+
+    iDB.private.cache.updateData = function(dataDetails) {
+        var objectStoreName = dataDetails.objectStoreName;
+        var objectStoreDetails = iDB.getObjectStoreDetails(objectStoreName);
+        var keyPathName = iDB.getKeyPathName(objectStoreName);
+
+        var all = iDB.private.cache.getAllData(objectStoreName);
         var dataExist = false;
 
         //search
         for (var i = 0; i < all.length; i++) {
             var data = all[i];
-            if (data[key] === dataDetails.data[key]) {
+            if (data[keyPathName] === dataDetails.data[keyPathName]) {
                 //update the data if key exists
-                data[key] = dataDetails.data;
-                dataExist = true;
+                all[i] = dataDetails.data;
+                break;
+            }
+        }
+    };
+
+    iDB.private.cache.deleteData = function(objectStoreName, objectToDelete) {
+
+        var objectStoreDetails = iDB.getObjectStoreDetails(objectStoreName);
+        var keyPathName = iDB.getKeyPathName(undefined, objectStoreDetails);
+        var indexes = iDB.getObjectStoreIndexes(undefined, objectStoreDetails);
+
+        var all = iDB.private.cache.getAllData(objectStoreName);
+        var cache = iDB.private.cache.getCache(objectStoreName);
+
+
+        for (var i = 0; i < all.length; i++) {
+            var data = all[i];
+            if (data[keyPathName] === objectToDelete[keyPathName]) {
+                iDB.private.cache.removeDataFromIndex(cache, objectToDelete, indexes);
+                all.splice(i, 1);
                 break;
             }
         }
 
-        //add data if it does not exists
-        if (!dataExist) {
-            all.push(dataDetails.data);
-        }
     };
-
-    iDB.private.cache.deleteData = function(dataDetails) {
-        var objectStoreName = dataDetails.objectStoreName;
-        var objectStoreDetails = iDB.getObjectStoreDetails(objectStoreName);
-        var key = objectStoreDetails.keyPath.name;
-        var objectsToDelete = dataDetails.objectsToDelete;
-
-        var all = iDB.private.cache.getAllData(objectStoreName);
-
-
-        var indexToSplice = [];
-        _.each(objectsToDelete, function(objectToDelete) {
-            console.log(objectsToDelete);
-            for (var i = 0; i < all.length; i++) {
-                var data = all[i];
-                if (data[key] === objectToDelete[key]) {
-                    indexToSplice.push(i);
-                    break;
-                }
-            }
-        });
-        indexToSplice.reverse();
-        _.each(indexToSplice, function(index){
-            all.splice(index, 1);
-        });
-
-    };
-
-
-
 
 })();
 ;(function() {
@@ -414,8 +505,9 @@
 
                 request.onsuccess = function(e) {
                     ++totalDeleteObjects;
+                    iDB.private.cache.deleteData(queryDetails.objectStoreName, objectToDelete);
+
                     if (totalDeleteObjects === queryDetails.objectsToDelete.length) {
-                        iDB.private.cache.deleteData(queryDetails);
                         if (callback) {
                             callback(true);
                         }
@@ -438,7 +530,7 @@
     iDB = window.iDB;
     iDB.find = function(queryDetails) {
         var id = queryDetails.id;
-        var objectStoreName = queryDetails.objectStore;
+        var objectStoreName = queryDetails.objectStoreName;
         var callback = queryDetails.callback;
 
         iDB.private.getObjectStore({
@@ -476,6 +568,13 @@
         var indexName = queryDetails.indexName;
         var indexValue = queryDetails.indexValue;
 
+        //try in the cache
+        if (iDB.private.cache.isAllDataRetrived(objectStoreName)) {
+            callback(iDB.private.cache.getIndexedData(objectStoreName, indexName, indexValue));
+            return;
+        }
+
+        //indexed db check
         iDB.private.getObjectStore({
             callback: function(objectStore) {
                 var index = objectStore.index(indexName);

@@ -7,6 +7,21 @@
     	return OBJECT_STORES;
     };
 
+    /*
+		format: {
+			name: ,
+			indexes: [
+				{
+					name: ,
+					unique: true/false
+				}
+			]
+			keyPath: {
+				name: ,
+				autoIncrement: true/false
+			}
+		}
+    */
 	iDB.registerObjectStore = function(objectStoresInfo){
 		_.each(objectStoresInfo, function(objectStoreInfo){
 			objectStoreInfo.keyPath.name = (objectStoreInfo.keyPath && objectStoreInfo.keyPath.name) || 'id';
@@ -26,6 +41,20 @@
 			}
 		});
 		return objectStoreDetails;
+	};
+
+	iDB.getKeyPathName = function(objectStoreNmae, objectStoreDetails){
+		if(objectStoreDetails){
+			return objectStoreDetails.keyPath.name;
+		}
+		return iDB.getObjectStoreDetails(objectStoreNmae).keyPath.name;
+	};
+
+	iDB.getObjectStoreIndexes = function(objectStoreName, objectStoreDetails){
+		if(objectStoreDetails){
+			return objectStoreDetails.indexes;
+		}
+		return iDB.getObjectStoreDetails(objectStoreName).indexes;	
 	};
 
 })();

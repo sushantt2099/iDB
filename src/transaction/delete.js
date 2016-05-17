@@ -16,8 +16,9 @@
 
                 request.onsuccess = function(e) {
                     ++totalDeleteObjects;
+                    iDB.private.cache.deleteData(queryDetails.objectStoreName, objectToDelete);
+
                     if (totalDeleteObjects === queryDetails.objectsToDelete.length) {
-                        iDB.private.cache.deleteData(queryDetails);
                         if (callback) {
                             callback(true);
                         }

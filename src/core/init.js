@@ -47,12 +47,14 @@
             var objectStoresInfo = iDB.private.getObjectStoresInfo();
             _.each(objectStoresInfo, function(objectStoreDetails){
             	var objectStoreName = objectStoreDetails.name;
+
+                //create index
             	var createIndex = function(objectStore, indexes) {
                     var existingIndexes = objectStore.indexNames;
                     _.each(indexes, function(index){
                     	var indexExists = false;
-                    	_.each(existingIndexes, function(existingIndexe){
-                    		 if (existingIndexe === index.name) {
+                    	_.each(existingIndexes, function(existingIndex){
+                    		 if (existingIndex === index.name) {
                                 indexExists = true;
                             }
                     	});
@@ -60,8 +62,9 @@
                             objectStore.createIndex(index.name, index.name, { unique: index.unique });
                         }
                     });
-                    
                 };
+                //end of creating index
+                
                 var objectStore;
                 if (!thisDB.objectStoreNames.contains(objectStoreName)) {
                     objectStore =

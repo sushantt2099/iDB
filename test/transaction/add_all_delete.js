@@ -31,15 +31,29 @@ QUnit.test("Indexeddb transaction add", function(assert) {
                                 done();
 
                             });
+                            
+                            //find
+
+                            iDB.find({
+                                id: allData[0].id,
+                                objectStoreName: objectStore.name,
+                                callback: function(data){
+
+                                }
+                            });
+
+                            var totalDeletedData = 0;
                             //delete
                             iDB.delete({
                                 objectStoreName: objectStore.name,
                                 objectsToDelete: allData,
                                 callback: function(){
                                     //fetch all the data and it should be empty array
+                                    ++totalDeletedData;
+
                                     iDB.all({
                                         callback: function(allData){
-                                            assert.ok(allData.length === 0, "Data delete successfully");
+                                            assert.ok(allData.length === (testHelper.dataToAdd.length - totalDeletedData), "Data delete successfully");
                                         },
                                         objectStoreName: objectStore.name
                                     });

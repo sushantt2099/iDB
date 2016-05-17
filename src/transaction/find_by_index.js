@@ -8,6 +8,13 @@
         var indexName = queryDetails.indexName;
         var indexValue = queryDetails.indexValue;
 
+        //try in the cache
+        if (iDB.private.cache.isAllDataRetrived(objectStoreName)) {
+            callback(iDB.private.cache.getIndexedData(objectStoreName, indexName, indexValue));
+            return;
+        }
+
+        //indexed db check
         iDB.private.getObjectStore({
             callback: function(objectStore) {
                 var index = objectStore.index(indexName);
