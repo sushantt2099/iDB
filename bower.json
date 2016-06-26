@@ -1,7 +1,7 @@
 {
-  "name": "idb",
+  "name": "idbase",
   "description": "js library to manage HTML5 indexedDB",
-  "main": "",
+  "main": "./dist/iDB.min.js",
   "authors": [
     "Sushant <forksushant@gmail.com>"
   ],
