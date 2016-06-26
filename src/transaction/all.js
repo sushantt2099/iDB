@@ -3,12 +3,10 @@
     iDB = window.iDB;
     iDB.all = function(queryDetails) {
         var objectStoreName = queryDetails.objectStoreName;
-        var start = queryDetails.start;
-        var end = queryDetails.end;
 
         // check the cache and return all
         if (iDB.private.cache.isAllDataRetrived(objectStoreName)) {
-            queryDetails.callback(iDB.private.cache.getAllData(objectStoreName));
+            queryDetails.callback(iDB.private.cache.getAllDataCopy(objectStoreName));
             return;
         }
 

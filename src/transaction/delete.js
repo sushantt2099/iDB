@@ -6,9 +6,15 @@
         var callback = queryDetails.callback;
         var totalDeleteObjects = 0;
         queryDetails.callback = function(db) {
+            var keyPath = iDB.getKeyPathName(queryDetails.objectsToDelete);
             _.each(queryDetails.objectsToDelete, function(objectToDelete) {
-                var id = objectToDelete.id;
-                var request = db.delete(id);
+
+                /**
+
+                    TODO: id can not be used to delete the data all the time
+                **/
+                var keyPathValue = objectToDelete[keyPath];
+                var request = db.delete(keyPathValue);
 
                 request.onerror = function(e) {
                     throw "could not delete  " + objectToDelete + e;

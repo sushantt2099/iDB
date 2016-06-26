@@ -52,3 +52,25 @@ testHelper.initDatabaseEnv = function() {
     testHelper.registerObjectStore();
     testHelper.initDatabase();
 };
+
+testHelper.currentAssert = undefined;
+testHelper.errorOnDBHit = false;
+
+testHelper.watchDatabaseHit = function(){
+    if(testHelper.errorOnDBHit){
+        testHelper.currentAssert.ok(false, "Code have hit the database.");
+    }
+}; 
+
+
+testHelper.codeShouldNotHitDatabase = function(assert){
+    testHelper.currentAssert = assert;
+    testHelper.errorOnDBHit = true;
+};
+
+
+testHelper.codeCanHitTheDatabase = function(assert){
+    testHelper.errorOnDBHit = false;
+};
+
+iDB.private.callbackOnDatabaseHit(testHelper.watchDatabaseHit);

@@ -4,7 +4,20 @@
     var db;
     iDB.private = iDB.private || {};
 
+    var databaseHitListner = [];
+    iDB.private.MODE_READ_WRITE = "readwrite";
+    iDB.private.MODE_READ = "read";
+    iDB.private.callbackOnDatabaseHit = function(callback){
+        if(databaseHitListner.indexOf(callback) > -1){
+            return;
+        }
+        databaseHitListner.push(callback);
+    };
+    
     iDB.private.getDBInstance = function(details){
+        //notify database hit
+        iDB.helper.callFunctionsWithArgument(databaseHitListner, [details]);
+        
         if(db){
             details.onSuccess(db);
         }else{
@@ -17,6 +30,8 @@
         }
     };
     iDB.private.getObjectStore = function(details){
+
+        iDB.helper.callFunctionsWithArgument(databaseHitListner, []);
         var objectStoreName = details.objectStoreName;
         var mode = details.mode || "readwrite";
         var callback = details.callback;
@@ -28,17 +43,13 @@
             throw "Either objectStoreName or callback is not provided";
         }
 
-        if(db){
-            callback(db.transaction([objectStoreName], mode)
-                                .objectStore(objectStoreName));
-        }else{
-            iDB.private.getDBInstance({
-                onSuccess: function(db){
-                    callback(db.transaction([objectStoreName], mode)
-                                .objectStore(objectStoreName));
-                }
-            });
-        }
+        iDB.private.getDBInstance({
+            onSuccess: function(db){
+                callback(db.transaction([objectStoreName], mode)
+                            .objectStore(objectStoreName));
+            }
+        });
+        
     };
 
     iDB.private.readAllData = function(details){
@@ -47,7 +58,7 @@
         var callback = details.callback;
         var all = [];
         
-        iDB.private.getObjectStore({
+        var queryDetails = {
             callback: function(objectStore) {
                 objectStore.openCursor(null, "prev").onsuccess = function(event) {
                     var cursor = event.target.result;
@@ -68,7 +79,8 @@
             },
             mode: 'readonly',
             objectStoreName: objectStoreName
-        });
+        };
+        iDB.private.getObjectStore(queryDetails);
     };
 
 })();;(function() {
@@ -259,11 +271,11 @@
 		return objectStoreDetails;
 	};
 
-	iDB.getKeyPathName = function(objectStoreNmae, objectStoreDetails){
+	iDB.getKeyPathName = function(objectStoreName, objectStoreDetails){
 		if(objectStoreDetails){
 			return objectStoreDetails.keyPath.name;
 		}
-		return iDB.getObjectStoreDetails(objectStoreNmae).keyPath.name;
+		return iDB.getObjectStoreDetails(objectStoreName).keyPath.name;
 	};
 
 	iDB.getObjectStoreIndexes = function(objectStoreName, objectStoreDetails){
@@ -281,23 +293,25 @@
         var callback = queryDetails.callback;
         var objectsToAdd = queryDetails.data;
         var totalObjectStoreAdded = 0;
+        queryDetails.mode = iDB.private.MODE_READ_WRITE;
 
         queryDetails.callback = function(objectStore) {
             _.each(objectsToAdd, function(objectToAdd) {
                 var request = objectStore.add(objectToAdd);
-                request.onerror = function(e) {
-                    console.log("DataBaseUtility:save: error");
-                    console.log(e);
-                    throw "Could not store " + objectToAdd;
-                };
+                
+                //error is handeled on db level
 
                 request.onsuccess = function(e) {
-                    
                     //cache data
                     iDB.private.cache.addData(queryDetails.objectStoreName, objectToAdd);
 
                     ++totalObjectStoreAdded;
                     console.log("saved to db");
+                    
+                    /**
+                        TO-DO: e.target.result maynot be id all the time!
+                    **/
+
                     objectToAdd.id = e.target.result;
                     if(totalObjectStoreAdded === objectsToAdd.length){
                         callback();
@@ -313,12 +327,10 @@
     iDB = window.iDB;
     iDB.all = function(queryDetails) {
         var objectStoreName = queryDetails.objectStoreName;
-        var start = queryDetails.start;
-        var end = queryDetails.end;
 
         // check the cache and return all
         if (iDB.private.cache.isAllDataRetrived(objectStoreName)) {
-            queryDetails.callback(iDB.private.cache.getAllData(objectStoreName));
+            queryDetails.callback(iDB.private.cache.getAllDataCopy(objectStoreName));
             return;
         }
 
@@ -430,6 +442,14 @@
         return iDB.private.cache.getCache(objectStoreName).all;
     };
 
+    iDB.private.cache.getAllDataCopy = function(objectStoreName) {
+        var clone = [];
+        var data = iDB.private.cache.getCache(objectStoreName).all;
+        _.each(data, function(object){
+            clone.push(_.clone(object));
+        });
+        return clone;
+    };
 
     iDB.private.cache.addData = function(objectStoreName, objectToAdd) {
 
@@ -495,9 +515,15 @@
         var callback = queryDetails.callback;
         var totalDeleteObjects = 0;
         queryDetails.callback = function(db) {
+            var keyPath = iDB.getKeyPathName(queryDetails.objectsToDelete);
             _.each(queryDetails.objectsToDelete, function(objectToDelete) {
-                var id = objectToDelete.id;
-                var request = db.delete(id);
+
+                /**
+
+                    TODO: id can not be used to delete the data all the time
+                **/
+                var keyPathValue = objectToDelete[keyPath];
+                var request = db.delete(keyPathValue);
 
                 request.onerror = function(e) {
                     throw "could not delete  " + objectToDelete + e;
@@ -562,8 +588,7 @@
     window.iDB = window.iDB || {};
     iDB = window.iDB;
     iDB.findByIndex = function(queryDetails) {
-        var id = queryDetails.id;
-        var objectStoreName = queryDetails.objectStore;
+        var objectStoreName = queryDetails.objectStoreName;
         var callback = queryDetails.callback;
         var indexName = queryDetails.indexName;
         var indexValue = queryDetails.indexValue;
@@ -611,22 +636,22 @@
     window.iDB = window.iDB || {};
     iDB = window.iDB;
     var WHERE_CONDITION_OPERATIONS = {
-        '>': function(modelData, property, value) {
+        'greaterThan': function(modelData, property, value) {
             return (value > modelData[property]);
         },
-        '==': function(modelData, property, value) {
+        'equalTo': function(modelData, property, value) {
             return (value == modelData[property]);
         },
-        '<': function(modelData, property, value) {
+        'lessThan': function(modelData, property, value) {
             return (value < modelData[property]);
         },
-        '<=': function(modelData, property, value) {
+        'lessThanEqualTo': function(modelData, property, value) {
             return (value <= modelData[property]);
         },
-        '>=': function(modelData, property, value) {
+        'greaterThanEqualTo': function(modelData, property, value) {
             return (value >= modelData[property]);
         },
-        '!=': function(modelData, property, value) {
+        'notEqualTo': function(modelData, property, value) {
             return (value != modelData[property]);
         }
     };
@@ -652,10 +677,8 @@
             var searchList = [];
             _.each(all, function(dataInQuestion){
                 var match = true;
-                _.each(conditions, function(condition){
+                _.each(conditions, function(condition, conditionIndex){
                     var propertyName = condition.property;
-
-                    var conditionIndex = conditions.indexOf(condition);
                     //for multiple conditions i.e or conditions
                     if (conditionIndex === 0) {
                         match = validateCondition(dataInQuestion, condition);

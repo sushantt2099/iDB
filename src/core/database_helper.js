@@ -4,7 +4,20 @@
     var db;
     iDB.private = iDB.private || {};
 
+    var databaseHitListner = [];
+    iDB.private.MODE_READ_WRITE = "readwrite";
+    iDB.private.MODE_READ = "read";
+    iDB.private.callbackOnDatabaseHit = function(callback){
+        if(databaseHitListner.indexOf(callback) > -1){
+            return;
+        }
+        databaseHitListner.push(callback);
+    };
+    
     iDB.private.getDBInstance = function(details){
+        //notify database hit
+        iDB.helper.callFunctionsWithArgument(databaseHitListner, [details]);
+        
         if(db){
             details.onSuccess(db);
         }else{
@@ -17,6 +30,8 @@
         }
     };
     iDB.private.getObjectStore = function(details){
+
+        iDB.helper.callFunctionsWithArgument(databaseHitListner, []);
         var objectStoreName = details.objectStoreName;
         var mode = details.mode || "readwrite";
         var callback = details.callback;
@@ -28,17 +43,13 @@
             throw "Either objectStoreName or callback is not provided";
         }
 
-        if(db){
-            callback(db.transaction([objectStoreName], mode)
-                                .objectStore(objectStoreName));
-        }else{
-            iDB.private.getDBInstance({
-                onSuccess: function(db){
-                    callback(db.transaction([objectStoreName], mode)
-                                .objectStore(objectStoreName));
-                }
-            });
-        }
+        iDB.private.getDBInstance({
+            onSuccess: function(db){
+                callback(db.transaction([objectStoreName], mode)
+                            .objectStore(objectStoreName));
+            }
+        });
+        
     };
 
     iDB.private.readAllData = function(details){
@@ -47,7 +58,7 @@
         var callback = details.callback;
         var all = [];
         
-        iDB.private.getObjectStore({
+        var queryDetails = {
             callback: function(objectStore) {
                 objectStore.openCursor(null, "prev").onsuccess = function(event) {
                     var cursor = event.target.result;
@@ -68,7 +79,8 @@
             },
             mode: 'readonly',
             objectStoreName: objectStoreName
-        });
+        };
+        iDB.private.getObjectStore(queryDetails);
     };
 
 })();

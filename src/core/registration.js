@@ -43,11 +43,11 @@
 		return objectStoreDetails;
 	};
 
-	iDB.getKeyPathName = function(objectStoreNmae, objectStoreDetails){
+	iDB.getKeyPathName = function(objectStoreName, objectStoreDetails){
 		if(objectStoreDetails){
 			return objectStoreDetails.keyPath.name;
 		}
-		return iDB.getObjectStoreDetails(objectStoreNmae).keyPath.name;
+		return iDB.getObjectStoreDetails(objectStoreName).keyPath.name;
 	};
 
 	iDB.getObjectStoreIndexes = function(objectStoreName, objectStoreDetails){

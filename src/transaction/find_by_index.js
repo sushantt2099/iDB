@@ -2,8 +2,7 @@
     window.iDB = window.iDB || {};
     iDB = window.iDB;
     iDB.findByIndex = function(queryDetails) {
-        var id = queryDetails.id;
-        var objectStoreName = queryDetails.objectStore;
+        var objectStoreName = queryDetails.objectStoreName;
         var callback = queryDetails.callback;
         var indexName = queryDetails.indexName;
         var indexValue = queryDetails.indexValue;

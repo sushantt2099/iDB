@@ -90,6 +90,14 @@
         return iDB.private.cache.getCache(objectStoreName).all;
     };
 
+    iDB.private.cache.getAllDataCopy = function(objectStoreName) {
+        var clone = [];
+        var data = iDB.private.cache.getCache(objectStoreName).all;
+        _.each(data, function(object){
+            clone.push(_.clone(object));
+        });
+        return clone;
+    };
 
     iDB.private.cache.addData = function(objectStoreName, objectToAdd) {
 

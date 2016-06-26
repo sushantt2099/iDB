@@ -22,7 +22,11 @@ module.exports = function(grunt) {
       }
     },
     qunit: {
-      files: ['test/**/*.html']
+      files: ['test/**/*.html'],
+      options: {
+        timeout: 10000,
+        '--cookies-file': 'misc/cookies.txt'
+      }
     },
     jshint: {
       files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js'],

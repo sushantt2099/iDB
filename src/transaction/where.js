@@ -2,22 +2,22 @@
     window.iDB = window.iDB || {};
     iDB = window.iDB;
     var WHERE_CONDITION_OPERATIONS = {
-        '>': function(modelData, property, value) {
+        'greaterThan': function(modelData, property, value) {
             return (value > modelData[property]);
         },
-        '==': function(modelData, property, value) {
+        'equalTo': function(modelData, property, value) {
             return (value == modelData[property]);
         },
-        '<': function(modelData, property, value) {
+        'lessThan': function(modelData, property, value) {
             return (value < modelData[property]);
         },
-        '<=': function(modelData, property, value) {
+        'lessThanEqualTo': function(modelData, property, value) {
             return (value <= modelData[property]);
         },
-        '>=': function(modelData, property, value) {
+        'greaterThanEqualTo': function(modelData, property, value) {
             return (value >= modelData[property]);
         },
-        '!=': function(modelData, property, value) {
+        'notEqualTo': function(modelData, property, value) {
             return (value != modelData[property]);
         }
     };
@@ -43,10 +43,7 @@
             var searchList = [];
             _.each(all, function(dataInQuestion){
                 var match = true;
-                _.each(conditions, function(condition){
-                    var propertyName = condition.property;
-
-                    var conditionIndex = conditions.indexOf(condition);
+                _.each(conditions, function(condition, conditionIndex){
                     //for multiple conditions i.e or conditions
                     if (conditionIndex === 0) {
                         match = validateCondition(dataInQuestion, condition);
