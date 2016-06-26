@@ -1,5 +1,5 @@
 {
-  "name": "iDB",
+  "name": "idb",
   "description": "js library to manage HTML5 indexedDB",
   "main": "",
   "authors": [
@@ -10,7 +10,7 @@
     "indexeddb"
   ],
   "homepage": "https://github.com/sushantt2099/iDB",
-  "private": true,
+  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",
