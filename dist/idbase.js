@@ -162,8 +162,6 @@
             version = details.version;
         }
         var onUpgradeNeeded = details.onUpgradeNeeded;
-        var onSuccess = details.onSuccess;
-        var onError = details.onError;
 
         var openRequest = indexedDB.open(databaseName, version);
 
@@ -172,11 +170,6 @@
         openRequest.onsuccess = function(e) {
             console.log("running onsuccess");
             var db = e.target.result;
-            if(onSuccess){
-            	onSuccess(db);
-
-            }
-
             if(details.callback){
                 callback();
             }
