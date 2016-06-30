@@ -25,7 +25,7 @@
             console.log("running onsuccess");
             var db = e.target.result;
             if(details.callback){
-                details.callback();
+                details.callback(db);
             }
         };
 

@@ -6,8 +6,10 @@
         var callback = queryDetails.callback;
         var totalDeleteObjects = 0;
         queryDetails.callback = function(db) {
-            var keyPath = iDB.getKeyPathName(queryDetails.objectsToDelete);
+        var keyPath = iDB.getKeyPathName(queryDetails.objectStoreName);
+        
             _.each(queryDetails.objectsToDelete, function(objectToDelete) {
+
 
                 /**
 

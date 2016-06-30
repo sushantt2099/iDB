@@ -19,12 +19,12 @@
         iDB.helper.callFunctionsWithArgument(databaseHitListner, [details]);
         
         if(db){
-            details.onSuccess(db);
+            details.callback(db);
         }else{
             iDB.private.getDB({
-                onSuccess: function(database){
+                callback: function(database){
                     db = database;
-                    details.onSuccess(db);
+                    details.callback(db);
                 }
             });
         }
@@ -44,7 +44,7 @@
         }
 
         iDB.private.getDBInstance({
-            onSuccess: function(db){
+            callback: function(db){
                 callback(db.transaction([objectStoreName], mode)
                             .objectStore(objectStoreName));
             }
@@ -171,7 +171,7 @@
             console.log("running onsuccess");
             var db = e.target.result;
             if(details.callback){
-                details.callback();
+                details.callback(db);
             }
         };
 
@@ -513,8 +513,10 @@
         var callback = queryDetails.callback;
         var totalDeleteObjects = 0;
         queryDetails.callback = function(db) {
-            var keyPath = iDB.getKeyPathName(queryDetails.objectsToDelete);
+        var keyPath = iDB.getKeyPathName(queryDetails.objectStoreName);
+        
             _.each(queryDetails.objectsToDelete, function(objectToDelete) {
+
 
                 /**
 

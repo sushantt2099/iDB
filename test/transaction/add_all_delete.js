@@ -4,75 +4,68 @@ QUnit.test("Indexeddb transaction add", function(assert) {
 
     testHelper.initDatabaseEnv();
 
-    var totalDataAddVerificationCount = testHelper.objectStoresToRegister.length * testHelper.dataToAdd.length;
+    
+    var totalDataAddVerificationCount = testHelper.objectStoresToRegister.length;
     var totalDataDeleteVerificationCount = testHelper.objectStoresToRegister.length;
     var totalTest = totalDataAddVerificationCount + totalDataDeleteVerificationCount;
     assert.expect(totalTest);
     var done = assert.async(totalTest);
-    console.log(totalDataAddVerificationCount + totalDataDeleteVerificationCount);
     
     var verifyAllDataInTheDatabase = function(objectStore, callback){
         iDB.all({
-                        objectStoreName: objectStore.name,
-                        callback: function(allData) {
-                            _.each(allData, function(data) {
-                                var dataValid = true;
-                                _.each(testHelper.dataToAdd, function(addedData) {
-                                    iDB.helper.eachObjectProperty(addedData, function(prop) {
-                                        if (data[prop] !== undefined) {
+            objectStoreName: objectStore.name,
+            callback: function(allData) {
+                var dataValid = true;
+                _.each(allData, function(data) {
+                    _.each(testHelper.dataToAdd, function(addedData) {
+                        iDB.helper.eachObjectProperty(addedData, function(prop) {
+                            if (data[prop] !== undefined) {
 
-                                        } else {
-                                            dataValid = false;
-                                        }
-                                    });
-                                });
-                                console.log(1);
-                                assert.ok(dataValid, "Data added To object Store");
-                                done();
-
-                            });
-                            
-                            //find
-
-                            // iDB.find({
-                            //     id: allData[0].id,
-                            //     objectStoreName: objectStore.name,
-                            //     callback: function(data){
-
-                            //     }
-                            // });
-
-                            
-                        }
-                        
+                            } else {
+                                dataValid = false;
+                            }
+                        });
                     });
-    };
 
-    var deleteAllData = function(objectStore, callback){
-        var totalDeletedData = 0;
-                            //delete
-                            iDB.delete({
-                                objectStoreName: objectStore.name,
-                                objectsToDelete: allData,
-                                callback: function(){
-                                    //fetch all the data and it should be empty array
-                                    ++totalDeletedData;
-
-                                    
-                                }
-                            });
+                });
+                console.log(1);
+                assert.ok(dataValid, "Data added To object Store");
+                done();
+                callback();
+                
+                
+            }
+        });
     };
 
     var verifyDatabaseIsEmpty = function(objectStore, callback){
         iDB.all({
-                    callback: function(allData){
-                        console.log('delete');
-                        assert.ok(allData.length === 0, "Data delete successfully");
-                        done();
-                    },
-                    objectStoreName: objectStore.name
-                });
+            callback: function(allData){
+                console.log('delete');
+                assert.ok(allData.length === 0, "Data delete successfully");
+                done();
+            },
+            objectStoreName: objectStore.name
+        });
     };
+
+    var deleteAllData = function(objectStore, callback){
+        
+        iDB.all({
+            callback: function(allData){
+                iDB.delete({
+                    objectStoreName: objectStore.name,
+                    objectsToDelete: allData,
+                    callback: callback
+                });
+            },
+            objectStoreName: objectStore.name
+        });
+        //delete
+        
+    };
+
+    
 
     var addDataToDatabase = function(objectStore, callback){
         iDB.add({
@@ -89,7 +82,6 @@ QUnit.test("Indexeddb transaction add", function(assert) {
                     verifyAllDataInTheDatabase(objectStore, function(){
                         deleteAllData(objectStore, function(){
                             verifyDatabaseIsEmpty(objectStore, function(){
-
                             });
                         });
                     });
