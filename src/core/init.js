@@ -28,6 +28,11 @@
             var db = e.target.result;
             if(onSuccess){
             	onSuccess(db);
+
+            }
+
+            if(details.callback){
+                callback();
             }
         };
 
