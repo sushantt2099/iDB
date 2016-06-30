@@ -9,7 +9,7 @@ QUnit.test("Indexeddb init", function(assert) {
     
     var initialize = function() {
         iDB.private.getDBInstance({
-        	onSuccess: function(db){
+        	callback: function(db){
         		_.each(db.objectStoreNames, function(objectStoreName){
         			var objectStoreFound = false;
         			_.each(testHelper.objectStoresToRegister, function(objectStoreToRegister){
