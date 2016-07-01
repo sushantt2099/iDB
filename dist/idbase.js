@@ -291,6 +291,7 @@
         var callback = queryDetails.callback;
         var objectsToAdd = queryDetails.data;
         var totalObjectStoreAdded = 0;
+        var keyPath = iDB.getKeyPathName(queryDetails.objectStoreName);
         queryDetails.mode = iDB.private.MODE_READ_WRITE;
 
         queryDetails.callback = function(objectStore) {
@@ -306,11 +307,8 @@
                     ++totalObjectStoreAdded;
                     console.log("saved to db");
                     
-                    /**
-                        TO-DO: e.target.result maynot be id all the time!
-                    **/
 
-                    objectToAdd.id = e.target.result;
+                    objectToAdd[keyPath] = e.target.result;
                     if(totalObjectStoreAdded === objectsToAdd.length){
                         callback(objectsToAdd);
                     }
@@ -526,12 +524,6 @@
         var keyPath = iDB.getKeyPathName(queryDetails.objectStoreName);
         
             _.each(queryDetails.objectsToDelete, function(objectToDelete) {
-
-
-                /**
-
-                    TODO: id can not be used to delete the data all the time
-                **/
                 var keyPathValue = objectToDelete[keyPath];
                 var request = db.delete(keyPathValue);
 

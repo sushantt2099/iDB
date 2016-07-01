@@ -9,12 +9,6 @@
         var keyPath = iDB.getKeyPathName(queryDetails.objectStoreName);
         
             _.each(queryDetails.objectsToDelete, function(objectToDelete) {
-
-
-                /**
-
-                    TODO: id can not be used to delete the data all the time
-                **/
                 var keyPathValue = objectToDelete[keyPath];
                 var request = db.delete(keyPathValue);
 
