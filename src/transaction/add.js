@@ -27,7 +27,7 @@
 
                     objectToAdd.id = e.target.result;
                     if(totalObjectStoreAdded === objectsToAdd.length){
-                        callback();
+                        callback(objectsToAdd);
                     }
                 };
             });

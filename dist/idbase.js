@@ -312,7 +312,7 @@
 
                     objectToAdd.id = e.target.result;
                     if(totalObjectStoreAdded === objectsToAdd.length){
-                        callback();
+                        callback(objectsToAdd);
                     }
                 };
             });
@@ -545,7 +545,7 @@
 
                     if (totalDeleteObjects === queryDetails.objectsToDelete.length) {
                         if (callback) {
-                            callback(true);
+                            callback(queryDetails.objectsToDelete);
                         }
                     }
 

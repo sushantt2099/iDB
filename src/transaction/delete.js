@@ -28,7 +28,7 @@
 
                     if (totalDeleteObjects === queryDetails.objectsToDelete.length) {
                         if (callback) {
-                            callback(true);
+                            callback(queryDetails.objectsToDelete);
                         }
                     }
 
