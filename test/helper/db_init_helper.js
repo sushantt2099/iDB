@@ -17,7 +17,7 @@ testHelper.objectStoresToRegister = [{
     customValidator: function() {},
     dataFormat: [],
     indexes: [{
-        name: 'test',
+        name: 'age',
         unique: true
     }],
     keyPath: {
@@ -29,6 +29,10 @@ testHelper.objectStoresToRegister = [{
     name: 'customers',
     customValidator: function() {},
     dataFormat: [],
+    indexes: [{
+        name: 'age',
+        unique: true
+    }],
     keyPath: {
         name: 'id',
         autoIncrement: true

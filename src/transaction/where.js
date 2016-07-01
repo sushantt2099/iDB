@@ -3,22 +3,22 @@
     iDB = window.iDB;
     var WHERE_CONDITION_OPERATIONS = {
         'greaterThan': function(modelData, property, value) {
-            return (value > modelData[property]);
+            return (modelData[property] > value);
         },
         'equalTo': function(modelData, property, value) {
-            return (value == modelData[property]);
+            return (modelData[property] == value);
         },
         'lessThan': function(modelData, property, value) {
-            return (value < modelData[property]);
+            return (modelData[property] < value );
         },
         'lessThanEqualTo': function(modelData, property, value) {
-            return (value <= modelData[property]);
+            return (modelData[property] <= value );
         },
         'greaterThanEqualTo': function(modelData, property, value) {
-            return (value >= modelData[property]);
+            return (modelData[property] >= value  );
         },
         'notEqualTo': function(modelData, property, value) {
-            return (value != modelData[property]);
+            return (modelData[property] != value  );
         }
     };
 

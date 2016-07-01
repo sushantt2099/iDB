@@ -450,6 +450,9 @@
     };
 
     iDB.private.cache.addData = function(objectStoreName, objectToAdd) {
+        if(!(iDB.private.cache.isAllDataRetrived(objectStoreName))){
+            return;
+        }
 
         var all = iDB.private.cache.getAllData(objectStoreName);
         if (all) {
@@ -465,7 +468,11 @@
     };
 
     iDB.private.cache.updateData = function(dataDetails) {
+        
         var objectStoreName = dataDetails.objectStoreName;
+        if(!(iDB.private.cache.isAllDataRetrived(objectStoreName))){
+            return;
+        }
         var objectStoreDetails = iDB.getObjectStoreDetails(objectStoreName);
         var keyPathName = iDB.getKeyPathName(objectStoreName);
 
@@ -485,6 +492,9 @@
 
     iDB.private.cache.deleteData = function(objectStoreName, objectToDelete) {
 
+        if(!(iDB.private.cache.isAllDataRetrived(objectStoreName))){
+            return;
+        }
         var objectStoreDetails = iDB.getObjectStoreDetails(objectStoreName);
         var keyPathName = iDB.getKeyPathName(undefined, objectStoreDetails);
         var indexes = iDB.getObjectStoreIndexes(undefined, objectStoreDetails);
@@ -637,22 +647,22 @@
     iDB = window.iDB;
     var WHERE_CONDITION_OPERATIONS = {
         'greaterThan': function(modelData, property, value) {
-            return (value > modelData[property]);
+            return (modelData[property] > value);
         },
         'equalTo': function(modelData, property, value) {
-            return (value == modelData[property]);
+            return (modelData[property] == value);
         },
         'lessThan': function(modelData, property, value) {
-            return (value < modelData[property]);
+            return (modelData[property] < value );
         },
         'lessThanEqualTo': function(modelData, property, value) {
-            return (value <= modelData[property]);
+            return (modelData[property] <= value );
         },
         'greaterThanEqualTo': function(modelData, property, value) {
-            return (value >= modelData[property]);
+            return (modelData[property] >= value  );
         },
         'notEqualTo': function(modelData, property, value) {
-            return (value != modelData[property]);
+            return (modelData[property] != value  );
         }
     };
 

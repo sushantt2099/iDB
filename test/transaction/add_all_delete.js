@@ -2,12 +2,15 @@ QUnit.test("Indexeddb transaction add", function(assert) {
 
 
 
-    testHelper.initDatabaseEnv();
+    //testHelper.initDatabaseEnv();
 
     
     var totalDataAddVerificationCount = testHelper.objectStoresToRegister.length;
     var totalDataDeleteVerificationCount = testHelper.objectStoresToRegister.length;
-    var totalTest = totalDataAddVerificationCount + totalDataDeleteVerificationCount;
+    var totalWhereVerificationCount = testHelper.objectStoresToRegister.length;
+    var totalFindByIndexVerificationCount = testHelper.objectStoresToRegister.length * testHelper.dataToAdd.length;
+    var totalTest = totalDataAddVerificationCount + totalDataDeleteVerificationCount + 
+                    totalWhereVerificationCount + totalFindByIndexVerificationCount;
     assert.expect(totalTest);
     var done = assert.async(totalTest);
     
@@ -75,15 +78,79 @@ QUnit.test("Indexeddb transaction add", function(assert) {
             });
     };
 
+    var applyWhereTest = function(objectStore, callback){
+        iDB.where({
+            objectStoreName: objectStore.name,
+            conditions: [{
+                property: 'age',
+                operator: 'greaterThanEqualTo',
+                value: 25
+            }],
+            callback: function(result){
+                var expectedResult = [];
+                _.each(testHelper.dataToAdd, function(data){
+                    if(data.age >= 25){
+                        expectedResult.push(data);
+                    }
+                });
+
+                //compare for the data
+
+                assert.ok(expectedResult.length === result.length, "Total number of object returned is same");
+                done();
+                callback();
+            }
+        });
+    };
+
+    var applyFindByIndexTest = function(objectStore, callback){
+        var totalFindByIndexTest = 0;
+        _.each(testHelper.dataToAdd, function(data){
+            _.each(objectStore.indexes, function(index){
+                iDB.findByIndex({
+                    objectStoreName: objectStore.name,
+                    indexName: index.name,
+                    indexValue: data[index.name],
+                    callback: function(result){
+                        ++totalFindByIndexTest;
+                        //verify the data property
+                        var dataValid = true;
+                        _.each(data, function(property){
+                            if(data[index.name] === result[index.name]){
+
+                            }else{
+                                dataValid = false;
+                            }
+                        });
+                        assert.ok(dataValid, "findByIndex returned the correct object");
+                        done();
+                        if(totalFindByIndexTest === totalFindByIndexVerificationCount/testHelper.objectStoresToRegister.length){
+                            callback();
+                        }
+                    }
+
+                });     
+            });
+              
+        });
+        
+    };
     var addData = function() {
         _.each(testHelper.objectStoresToRegister, function(objectStore) {
             addDataToDatabase(objectStore,
                 function() {
                     verifyAllDataInTheDatabase(objectStore, function(){
-                        deleteAllData(objectStore, function(){
-                            verifyDatabaseIsEmpty(objectStore, function(){
+                        applyWhereTest(objectStore, function(){
+                            applyFindByIndexTest(objectStore, function(){
+                                deleteAllData(objectStore, function(){
+                                    verifyDatabaseIsEmpty(objectStore, function(){
+
+                                    });
+                                });     
                             });
+                               
                         });
+                        
                     });
                 }
             );

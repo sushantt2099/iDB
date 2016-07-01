@@ -100,6 +100,9 @@
     };
 
     iDB.private.cache.addData = function(objectStoreName, objectToAdd) {
+        if(!(iDB.private.cache.isAllDataRetrived(objectStoreName))){
+            return;
+        }
 
         var all = iDB.private.cache.getAllData(objectStoreName);
         if (all) {
@@ -115,7 +118,11 @@
     };
 
     iDB.private.cache.updateData = function(dataDetails) {
+        
         var objectStoreName = dataDetails.objectStoreName;
+        if(!(iDB.private.cache.isAllDataRetrived(objectStoreName))){
+            return;
+        }
         var objectStoreDetails = iDB.getObjectStoreDetails(objectStoreName);
         var keyPathName = iDB.getKeyPathName(objectStoreName);
 
@@ -135,6 +142,9 @@
 
     iDB.private.cache.deleteData = function(objectStoreName, objectToDelete) {
 
+        if(!(iDB.private.cache.isAllDataRetrived(objectStoreName))){
+            return;
+        }
         var objectStoreDetails = iDB.getObjectStoreDetails(objectStoreName);
         var keyPathName = iDB.getKeyPathName(undefined, objectStoreDetails);
         var indexes = iDB.getObjectStoreIndexes(undefined, objectStoreDetails);
