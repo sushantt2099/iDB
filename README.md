@@ -85,7 +85,7 @@ each condition is  object and each where condition object looks like this
     property: ,//property of object to be checked
     operator: 'greaterThanEqualTo', 
     value: 25,
-    and: //nested condition
+    and: //optional nested condition
 }
 ```            
 Conditions in the array is applied as || . Nested conditions using the 'and' property is applied as &&
