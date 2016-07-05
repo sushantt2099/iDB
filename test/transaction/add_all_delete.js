@@ -71,7 +71,7 @@ QUnit.test("Indexeddb transaction add", function(assert) {
     
 
     var addDataToDatabase = function(objectStore, callback){
-        iDB.add({
+        iDB.save({
                 objectStoreName: objectStore.name,
                 data: testHelper.dataToAdd,
                 callback: callback
