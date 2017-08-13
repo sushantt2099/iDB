@@ -108,7 +108,7 @@ iDB.all({
 });
 ```
 
-##### setup for development
+## setup for development
 ```sh
 npm install
 ```
