@@ -107,3 +107,29 @@ iDB.all({
     callback: //callback function that will be called with all the data once the operations completes
 });
 ```
+
+##### setup for development
+```sh
+npm install
+```
+```sh
+bower install
+```
+
+###### test
+run the tests
+```sh
+grunt test
+```
+
+###### watch
+watch for changes and run the tests
+```sh
+grunt watch
+```
+
+###### build
+buid the dist files
+```sh
+grunt
+```
