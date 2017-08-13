@@ -2,6 +2,8 @@
 
 iDB is a wrapper around indexedDB, its helps developer to effeciently and fastly use IndexedDB to write modern HTML5 apps.
 
+[![Build Status](https://travis-ci.org/sushantt2099/iDB.svg?branch=master)](https://travis-ci.org/sushantt2099/iDB)
+
 # Install using bower
 
 ```sh
